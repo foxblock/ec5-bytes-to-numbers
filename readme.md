@@ -1,5 +1,5 @@
 # EC5-compatible byte array to number conversions
-I needed to convert a lot of byte arrays into different types of numbers (int16, int32, floats, etc.) for LoRaWAN driver development. Unfortunately my environment (using the otto library in Go to load JS code) only allowed for EC5-compatible JavaScript.
+I needed to convert a lot of byte arrays into different types of numbers (int16, int32, floats, etc.) for LoRaWAN driver/decoder development. Unfortunately my environment (using the [otto library](https://github.com/robertkrimen/otto) in Go to load JS code) only allowed for EC5-compatible JavaScript.
 
 So I made this set of utility functions. They convert a byte array to the following types:
 - uint8, uint16, uint32, uint64
@@ -29,7 +29,7 @@ I recommend copying only the necessary functions to your codebase and not includ
 `test_convert.js` holds the unit tests. These are fairly thourough. Any integer up to 32-bit width is fully checked. Uint64 is only checked for edge cases (since fully checking would take a minute or so). Testing float conversions is tricky, because JS converts everything to double. So we check all the edge cases and a few random values. 
 
 Call `convert_test_all()` to run all tests.  
-Note: For `convert_nocheck.js` the variable `convert_skip_error_tests` needs to be set to true, so the missing "array length error"-handling is not tested.
+Note: For `convert_nocheck.js` the variable `convert_skip_error_tests` needs to be set to true, so the missing "array length" error-handling is not tested.
 
 Note: Tests are NOT EC5 compatible, since they use the DataView class for comparison.
 
