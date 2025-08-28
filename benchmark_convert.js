@@ -6,6 +6,13 @@ function multibench() {
     benchmark(10000000);
 }
 
+function multibench_float() {
+    benchmark_float(10000);
+    benchmark_float(100000);
+    benchmark_float(1000000);
+    benchmark_float(10000000);
+}
+
 function ByteArrayToUint32_2(bytes, offset, littleEndian) {
     if (offset == undefined)
         offset = 0;
@@ -95,54 +102,6 @@ function ByteArrayToFloat64_2(buffer, offset, littleEndian) {
     return (s ? -1 : 1) * m * Math.pow(2, e - mLen);
 }
 
-function multibench_float() {
-    benchmark_float(10000);
-    benchmark_float(100000);
-    benchmark_float(1000000);
-    benchmark_float(10000000);
-}
-
-function benchmark_float(iterations) {
-    let data = new Array(1024);
-    for (let i = 0; i < data.length; ++i)
-        data[i] = Math.floor(Math.random() * 256);
-
-    let result = 0;
-    let startTime = 0;
-    let endTime = 0;
-
-    startTime = performance.now();
-    for (let i = 0; i < iterations; ++i) {
-        let randomIndex = Math.floor(Math.random() * (data.length - 8));
-        result += ByteArrayToFloat64(data, randomIndex, false);
-    }
-    endTime = performance.now();
-    console.log("ByteArrayToFloat64: " + result);
-    console.log("ByteArrayToFloat64: " + iterations + " iterations took: " + (endTime - startTime) + "ms");
-    result = 0;
-
-    startTime = performance.now();
-    for (let i = 0; i < iterations; ++i) {
-        let randomIndex = Math.floor(Math.random() * (data.length - 8));
-        result += ByteArrayToFloat64_2(data, randomIndex, false);
-    }
-    endTime = performance.now();
-    console.log("ByteArrayToFloat64_2: " + result);
-    console.log("ByteArrayToFloat64_2: " + iterations + " iterations took: " + (endTime - startTime) + "ms");
-    result = 0;
-
-    startTime = performance.now();
-    const buffer = new Uint8Array(data);
-    const view = new DataView(buffer.buffer);
-    for (let i = 0; i < iterations; ++i) {
-        let randomIndex = Math.floor(Math.random() * (data.length - 8));
-        result += view.getFloat64(randomIndex);
-    }
-    endTime = performance.now();
-    console.log("DataView (create once): " + result);
-    console.log("DataView (create once): " + iterations + " iterations took: " + (endTime - startTime) + "ms");
-}
-
 function benchmark(iterations) {
     let data = new Array(1024);
     for (let i = 0; i < data.length; ++i)
@@ -205,7 +164,7 @@ function benchmark(iterations) {
 
     startTime = performance.now();
     for (let i = 0; i < iterations; ++i) {
-        if (i % (data.length / 4) === 0) {
+        if (i % 256 === 0) {
             buffer = new Uint8Array(data);
             view = new DataView(buffer.buffer);
         }
@@ -215,4 +174,82 @@ function benchmark(iterations) {
     endTime = performance.now();
     console.log("DataView (create every 256): " + result);
     console.log("DataView (create every 256): " + iterations + " iterations took: " + (endTime - startTime) + "ms");
+
+    startTime = performance.now();
+    for (let i = 0; i < iterations; ++i) {
+        buffer = new Uint8Array(data);
+        view = new DataView(buffer.buffer);
+        let randomIndex = Math.floor(Math.random() * (data.length - 4));
+        result += view.getUint32(randomIndex);
+    }
+    endTime = performance.now();
+    console.log("DataView (create every): " + result);
+    console.log("DataView (create every): " + iterations + " iterations took: " + (endTime - startTime) + "ms");
+
+    console.log("NOTE: Number results will not match, since indices are picket at random to avoid skewing results due to caching and JIT behavior.");
+}
+
+function benchmark_float(iterations) {
+    let data = new Array(1024);
+    for (let i = 0; i < data.length; ++i)
+        data[i] = Math.floor(Math.random() * 256);
+
+    let result = 0;
+    let startTime = 0;
+    let endTime = 0;
+
+    startTime = performance.now();
+    for (let i = 0; i < iterations; ++i) {
+        let randomIndex = Math.floor(Math.random() * (data.length - 8));
+        result += ByteArrayToFloat64(data, randomIndex, false);
+    }
+    endTime = performance.now();
+    console.log("ByteArrayToFloat64: " + result);
+    console.log("ByteArrayToFloat64: " + iterations + " iterations took: " + (endTime - startTime) + "ms");
+    result = 0;
+
+    startTime = performance.now();
+    for (let i = 0; i < iterations; ++i) {
+        let randomIndex = Math.floor(Math.random() * (data.length - 8));
+        result += ByteArrayToFloat64_2(data, randomIndex, false);
+    }
+    endTime = performance.now();
+    console.log("ByteArrayToFloat64_2: " + result);
+    console.log("ByteArrayToFloat64_2: " + iterations + " iterations took: " + (endTime - startTime) + "ms");
+    result = 0;
+
+    startTime = performance.now();
+    let buffer = new Uint8Array(data);
+    let view = new DataView(buffer.buffer);
+    for (let i = 0; i < iterations; ++i) {
+        let randomIndex = Math.floor(Math.random() * (data.length - 8));
+        result += view.getFloat64(randomIndex);
+    }
+    endTime = performance.now();
+    console.log("DataView (create once): " + result);
+    console.log("DataView (create once): " + iterations + " iterations took: " + (endTime - startTime) + "ms");
+
+    startTime = performance.now();
+    for (let i = 0; i < iterations; ++i) {
+        if (i % 256 === 0) {
+            buffer = new Uint8Array(data);
+            view = new DataView(buffer.buffer);
+        }
+        let randomIndex = Math.floor(Math.random() * (data.length - 8));
+        result += view.getFloat64(randomIndex);
+    }
+    endTime = performance.now();
+    console.log("DataView (create every 256): " + result);
+    console.log("DataView (create every 256): " + iterations + " iterations took: " + (endTime - startTime) + "ms");
+
+    startTime = performance.now();
+    for (let i = 0; i < iterations; ++i) {
+        buffer = new Uint8Array(data);
+        view = new DataView(buffer.buffer);
+        let randomIndex = Math.floor(Math.random() * (data.length - 8));
+        result += view.getFloat64(randomIndex);
+    }
+    endTime = performance.now();
+    console.log("DataView (create every): " + result);
+    console.log("DataView (create every): " + iterations + " iterations took: " + (endTime - startTime) + "ms");
 }
